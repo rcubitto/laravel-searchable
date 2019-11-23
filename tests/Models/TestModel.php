@@ -30,6 +30,11 @@ class TestModel extends Model implements Searchable
         return $this->hasMany(TestComment::class);
     }
 
+    public function scopeActive($query)
+    {
+        $query->where('active', true);
+    }
+
     public function getSearchResult(): SearchResult
     {
         return new SearchResult($this, $this->name);

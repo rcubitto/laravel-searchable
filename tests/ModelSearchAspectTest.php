@@ -91,6 +91,24 @@ class ModelSearchAspectTest extends TestCase
     }
 
     /** @test */
+    function it_can_add_scopes()
+    {
+        $searchAspect = ModelSearchAspect::forModel(TestModel::class)
+            ->active()
+            ->role('admin');
+
+        $refObject = new ReflectionObject($searchAspect);
+        $refProperty = $refObject->getProperty('scopes');
+        $refProperty->setAccessible(true);
+        $scopes = $refProperty->getValue($searchAspect);
+
+        $this->assertArrayHasKey('active', $scopes);
+        $this->assertEquals([], $scopes['active']);
+        $this->assertArrayHasKey('role', $scopes);
+        $this->assertEquals(['admin'], $scopes['role']);
+    }
+
+    /** @test */
     public function it_can_build_an_eloquent_query()
     {
         $searchAspect = ModelSearchAspect::forModel(TestModel::class)
@@ -129,6 +147,27 @@ class ModelSearchAspectTest extends TestCase
 
         $this->assertEquals($expectedModelQuery, $executedModelQuery);
         $this->assertEquals($expectedEagersQuery, $executedEagersQuery);
+    }
+
+    /** @test */
+    function it_can_build_an_eloquent_query_with_scopes()
+    {
+        $searchAspect = ModelSearchAspect::forModel(TestModel::class)
+            ->addSearchableAttribute('name', true)
+            ->addExactSearchableAttribute('email')
+            ->active();
+
+        DB::enableQueryLog();
+
+        $searchAspect->getResults('john');
+
+        $expectedQuery = 'select * from "test_models" where "active" = ? and (LOWER(name) LIKE ? or "email" = ?)';
+
+        $executedQuery = Arr::get(DB::getQueryLog(), '0.query');
+        $scopeBinding = Arr::get(DB::getQueryLog(), '0.bindings.0');
+
+        $this->assertEquals($expectedQuery, $executedQuery);
+        $this->assertEquals(1, $scopeBinding);
     }
 
     /** @test */
