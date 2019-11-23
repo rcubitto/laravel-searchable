@@ -25,6 +25,11 @@ class TestModel extends Model implements Searchable
         ]);
     }
 
+    public function comments()
+    {
+        return $this->hasMany(TestComment::class);
+    }
+
     public function getSearchResult(): SearchResult
     {
         return new SearchResult($this, $this->name);

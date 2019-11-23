@@ -22,6 +22,9 @@ class ModelSearchAspect extends SearchAspect
     /** @var array */
     protected $attributes = [];
 
+    /** @var array */
+    protected $eagerLoad = [];
+
     public static function forModel(string $model, ...$attributes): self
     {
         return new self($model, $attributes);
@@ -92,6 +95,15 @@ class ModelSearchAspect extends SearchAspect
         return $this->search;
     }
 
+    public function with(... $relations): self
+    {
+        $eagerLoad = Arr::flatten($relations);
+
+        $this->eagerLoad = array_merge($this->eagerLoad, $eagerLoad);
+
+        return $this;
+    }
+
     public function register()
     {
         $this->search->registerAspect($this);
@@ -115,6 +127,8 @@ class ModelSearchAspect extends SearchAspect
         }
 
         $query = ($this->model)::query();
+
+        $query->with($this->eagerLoad);
 
         $this->addSearchConditions($query, $term);
 

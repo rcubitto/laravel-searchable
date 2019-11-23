@@ -10,6 +10,7 @@ use Spatie\Searchable\ModelSearchAspect;
 use Spatie\Searchable\Tests\Models\TestModel;
 use Spatie\Searchable\Exceptions\InvalidSearchableModel;
 use Spatie\Searchable\Exceptions\InvalidModelSearchAspect;
+use Spatie\Searchable\Tests\Models\TestComment;
 
 class ModelSearchAspectTest extends TestCase
 {
@@ -73,6 +74,23 @@ class ModelSearchAspectTest extends TestCase
     }
 
     /** @test */
+    function it_can_add_relationships_to_be_eager_loaded()
+    {
+        $searchAspect = ModelSearchAspect::forModel(TestModel::class)
+            ->with('foo', 'bar')
+            ->with('baz');
+
+        $refObject = new ReflectionObject($searchAspect);
+        $refProperty = $refObject->getProperty('eagerLoad');
+        $refProperty->setAccessible(true);
+        $eagerLoads = $refProperty->getValue($searchAspect);
+
+        $this->assertEquals('foo', $eagerLoads[0]);
+        $this->assertEquals('bar', $eagerLoads[1]);
+        $this->assertEquals('baz', $eagerLoads[2]);
+    }
+
+    /** @test */
     public function it_can_build_an_eloquent_query()
     {
         $searchAspect = ModelSearchAspect::forModel(TestModel::class)
@@ -88,6 +106,29 @@ class ModelSearchAspectTest extends TestCase
         $executedQuery = Arr::get(DB::getQueryLog(), '0.query');
 
         $this->assertEquals($expectedQuery, $executedQuery);
+    }
+
+    /** @test */
+    function it_can_build_an_eloquent_query_with_eager_loads()
+    {
+        $model = TestModel::createWithName('john');
+
+        $searchAspect = ModelSearchAspect::forModel(TestModel::class)
+            ->addSearchableAttribute('name')
+            ->with('comments');
+
+        DB::enableQueryLog();
+
+        $searchAspect->getResults('john');
+
+        $expectedModelQuery = 'select * from "test_models" where (LOWER(name) LIKE ?)';
+        $expectedEagersQuery = 'select * from "test_comments" where "test_comments"."test_model_id" in ('.$model->id.')';
+
+        $executedModelQuery = Arr::get(DB::getQueryLog(), '0.query');
+        $executedEagersQuery = Arr::get(DB::getQueryLog(), '1.query');
+
+        $this->assertEquals($expectedModelQuery, $executedModelQuery);
+        $this->assertEquals($expectedEagersQuery, $executedEagersQuery);
     }
 
     /** @test */
