@@ -42,6 +42,21 @@ class Search
         return $this;
     }
 
+    public function model(string $modelClass, ...$attributes): ModelSearchAspect
+    {
+        if (isset($attributes[0]) && is_callable($attributes[0])) {
+            $attributes = $attributes[0];
+        }
+
+        if (is_array(Arr::get($attributes, 0))) {
+            $attributes = $attributes[0];
+        }
+
+        $searchAspect = new ModelSearchAspect($modelClass, $attributes);
+
+        return $searchAspect->setSearch($this);
+    }
+
     public function getSearchAspects(): array
     {
         return $this->aspects;

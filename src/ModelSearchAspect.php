@@ -3,6 +3,7 @@
 namespace Spatie\Searchable;
 
 use Illuminate\Support\Arr;
+use Spatie\Searchable\Search;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,9 @@ class ModelSearchAspect extends SearchAspect
 {
     /** @var \Illuminate\Database\Eloquent\Model */
     protected $model;
+
+    /** @var \Spatie\Searchable\Search */
+    protected $search;
 
     /** @var array */
     protected $attributes = [];
@@ -74,6 +78,23 @@ class ModelSearchAspect extends SearchAspect
         $this->attributes[] = SearchableAttribute::createExact($attribute);
 
         return $this;
+    }
+
+    public function setSearch(Search $search): self
+    {
+        $this->search = $search;
+
+        return $this;
+    }
+
+    public function getSearch()
+    {
+        return $this->search;
+    }
+
+    public function register()
+    {
+        $this->search->registerAspect($this);
     }
 
     public function getType(): string

@@ -39,6 +39,18 @@ class SearchTest extends TestCase
     }
 
     /** @test */
+    public function it_can_return_a_model_search_aspect_without_registering_it()
+    {
+        $search = new Search();
+
+        $searchAspect = $search->model(TestModel::class, 'name');
+
+        $this->assertInstanceOf(ModelSearchAspect::class, $searchAspect);
+        $this->assertInstanceOf(Search::class, $searchAspect->getSearch());
+        $this->assertCount(0, $search->getSearchAspects());
+    }
+
+    /** @test */
     public function a_model_search_aspect_can_be_configured_using_a_closure()
     {
         TestModel::createWithName('john doe');
