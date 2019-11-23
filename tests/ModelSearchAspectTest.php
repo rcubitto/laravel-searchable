@@ -62,18 +62,6 @@ class ModelSearchAspectTest extends TestCase
     }
 
     /** @test */
-    public function it_can_register_itself()
-    {
-        $search = new \Spatie\Searchable\Search();
-
-        ModelSearchAspect::forModel(TestModel::class)
-            ->setSearch($search)
-            ->register();
-
-        $this->assertCount(1, $search->getSearchAspects());
-    }
-
-    /** @test */
     function it_can_add_relationships_to_be_eager_loaded()
     {
         $searchAspect = ModelSearchAspect::forModel(TestModel::class)
