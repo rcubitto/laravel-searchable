@@ -112,7 +112,7 @@ class ModelSearchAspect extends SearchAspect
 
     public function register()
     {
-        $this->search->registerAspect($this);
+        return tap($this->search)->registerAspect($this);
     }
 
     public function getType(): string

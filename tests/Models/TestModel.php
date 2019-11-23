@@ -25,6 +25,14 @@ class TestModel extends Model implements Searchable
         ]);
     }
 
+    public static function createWithNameAndActive(string $name): self
+    {
+        return static::create([
+            'name' => $name,
+            'active' => true
+        ]);
+    }
+
     public function comments()
     {
         return $this->hasMany(TestComment::class);

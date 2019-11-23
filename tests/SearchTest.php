@@ -6,6 +6,7 @@ use ReflectionObject;
 use Illuminate\Support\Arr;
 use Spatie\Searchable\Search;
 use Spatie\Searchable\ModelSearchAspect;
+use Spatie\Searchable\Tests\Models\TestComment;
 use Spatie\Searchable\Tests\Models\TestModel;
 use Spatie\Searchable\Tests\stubs\CustomNameSearchAspect;
 
@@ -26,6 +27,32 @@ class SearchTest extends TestCase
         $this->assertCount(1, $results);
         $this->assertArrayHasKey('test_models', $results->groupByType());
         $this->assertCount(1, $results->aspect('test_models'));
+    }
+
+    /** @test */
+    function it_can_eager_load_relationships_and_apply_scopes_to_a_model_search_aspect()
+    {
+        $inactiveModel = TestModel::createWithName('john doe');
+        $activeModel = TestModel::createWithNameAndActive('john doe');
+        collect()->times(3, function () use ($activeModel) {
+            $activeModel->comments()->create();
+        });
+
+        $results = (new Search())
+            ->model(TestModel::class, 'name')
+            ->with('comments')
+            ->active()
+            ->register()
+            ->search('john');
+
+        $this->assertCount(1, $results);
+        $this->assertArrayHasKey('test_models', $results->groupByType());
+        $this->assertCount(1, $results->aspect('test_models'));
+
+        $foundModel = $results->aspect('test_models')[0]->searchable;
+        $this->assertTrue($foundModel->is($activeModel));
+        $this->assertTrue($foundModel->relationLoaded('comments'));
+        $this->assertCount(3, $foundModel->comments);
     }
 
     /** @test */
