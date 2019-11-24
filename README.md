@@ -110,15 +110,28 @@ $searchResults = (new Search())
    ->search('john');
 ```
 
-To get fine grained control you can also use a callable. This way you can also search for exact matches.
+To get fine grained control you can also use a callable. This way you can also search for exact matches, apply scopes, eager load relationships, or even filter your query like you would, using the query builder.
 
 ```php
-$searchResults = (new Search())
+$search = (new Search())
    ->registerModel(User::class, function(ModelSearchAspect $modelSearchAspect) {
        $modelSearchAspect
           ->addSearchableAttribute('name') // return results for partial matches on usernames
-          ->addExactSearchableAttribute('email'); // only return results that exactly match the e-mail address
+          ->addExactSearchableAttribute('email') // only return results that exactly match the e-mail address
+          ->active()
+          ->with('accounts');
 });
+```
+
+You can also apply 
+
+```php
+$search = (new Search())
+    ->model(User::class, ['first_name', 'last_name'])
+    ->with('accounts')
+    ->active()
+    ->register();
+    // returns the Search instance so you can keep on chaining
 ```
 
 ### Creating custom search aspects
